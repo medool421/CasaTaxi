@@ -1,12 +1,62 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { useState, useEffect, useMemo } from 'react';
+import { View, StyleSheet, TouchableOpacity, Text, Alert} from 'react-native';
+import { StatusBar } from "expo-status-bar";
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
-import { CASA_CENTER, USER_POSITION, generateRandomTaxis } from '../utils/casaLocations';
+import { CASA_LOCATIONS ,CASA_CENTER, generateRandomTaxis } from '../utils/casaLocations';
+import * as Location from 'expo-location';
+import { router } from 'expo-router';
+import MapLightStyle from "../assets/mapLightStyle.json"
+import MapDarkStyle from "../assets/mapDarkStyle.json"
+import useTaxiStore from '../store/taxiStore';
+
 
 export default function MapScreen() {
   const [taxis, setTaxis] = useState([]);
+  const [userPosition, setUserPosition] = useState(CASA_CENTER);
+  const [mapRegion, setMapRegion] = useState(CASA_CENTER);
+  const isDayMode = useTaxiStore((state) => state.isDayMode);
 
-  // Generate taxis when component mounts
+
+// Request location permission and get user position
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission refusée',
+          'Nous avons besoin de votre localisation pour trouver les taxis près de vous.',
+          [{ text: 'OK' }]
+        );
+
+        setUserPosition({
+          latitude: CASA_CENTER.latitude,
+          longitude: CASA_CENTER.longitude,
+        });
+        return;
+      }
+
+      // Get current position
+      let location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+
+      const userCoords = {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      };
+
+      setUserPosition(userCoords);
+
+      setMapRegion({
+        latitude: userCoords.latitude,
+        longitude: userCoords.longitude,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+      });
+    })();
+  }, []);
+
   useEffect(() => {
     const availableTaxis = generateRandomTaxis(8);
     setTaxis(availableTaxis);
@@ -14,26 +64,25 @@ export default function MapScreen() {
 
   const handleBookTaxi = () => {
     console.log('Réserver un taxi clicked!');
-    // TODO: Navigate to booking screen
+      router.push('/booking');
   };
 
-  return (
-    <View style={styles.container}>
-      {/* Map View */}
-      <MapView
+  const map = useMemo(()=>
+        <MapView
+        customMapStyle={!isDayMode ?MapDarkStyle:MapLightStyle}
         style={styles.map}
         provider={PROVIDER_GOOGLE}
-        initialRegion={CASA_CENTER}
+        initialRegion={mapRegion}
         showsUserLocation={false}
         showsMyLocationButton={false}
       >
-         <Marker
-          coordinate={USER_POSITION}
-          title="Ma position"
-          pinColor="#298cddff"
-        />
+          <Marker
+            coordinate={userPosition}
+            title="Ma position"
+            pinColor="#298cddff"
+          />
+        
 
-        {/* Red Taxi Markers */}
         {taxis.map((taxi) => (
           <Marker
             key={taxi.id}
@@ -43,11 +92,34 @@ export default function MapScreen() {
             }}
             title={`Taxi ${taxi.driver.carNumber}`}
             description={`${taxi.driver.name} - ⭐ ${taxi.driver.rating}`}
-            image={require('../assets/taxi-vect.png')}          />
+            image={require('../assets/taxi-vect.png')}
+            />
         ))}
-      </MapView>
 
-      {/* Book Taxi Button */}
+        {CASA_LOCATIONS.map((location) => (
+          <Marker
+          
+            key={location.id}
+            coordinate={{
+              latitude: location.latitude,
+              longitude: location.longitude,
+            }}
+            title={`${location.name}`}
+            description={`${location.address} - ⭐ ${location.rating}`}
+            image={require('../assets/markerdest.webp')}
+             />
+        ))}
+      </MapView>,[taxis, userPosition, isDayMode])
+  
+  return (
+    <View style={styles.container}>
+    <StatusBar style="auto"  />
+    <View style={styles.textSection}>
+        <Text style={styles.text} >🚖 CASA Taxi 🚖</Text>
+    </View>
+ 
+    {map}
+
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.bookButton}
@@ -70,6 +142,19 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  textSection: {
+    position: 'absolute',
+    zIndex:33,
+    justifyContent :'center',
+    top: 100,
+    marginHorizontal:136,
+  },
+  text: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    
+  },
   buttonContainer: {
     position: 'absolute',
     bottom: 40,
@@ -77,7 +162,7 @@ const styles = StyleSheet.create({
     right: 20,
   },
   bookButton: {
-    backgroundColor: '#DC143C', // Red color for Casablanca petit taxi
+    backgroundColor: '#DC143C',
     paddingVertical: 16,
     paddingHorizontal: 30,
     borderRadius: 12,

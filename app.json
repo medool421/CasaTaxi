@@ -2,9 +2,20 @@
   "expo": {
     "scheme": "acme",
     "plugins": [
-      "expo-router"
+      "expo-router",
+      ["expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow CasaTaxi to use your location to find nearby taxis."
+        }
+      ]
     ],
     "name": "CasaTaxi",
-    "slug": "CasaTaxi"
+    "slug": "CasaTaxi",
+    "android": {
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
+    }
   }
 }

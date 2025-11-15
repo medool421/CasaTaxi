@@ -6,14 +6,17 @@ export const CASA_LOCATIONS = [
         longitude: -7.5898,
         type: "airport",
         address: "Route de l'Aéroport, Nouacer",
-    },
-    {
-    id: 2,
-    name: "Gare Casa-Voyageurs",
-    latitude: 33.5901,
-    longitude: -7.6156,
-    type: "station",
-    address: "Boulevard Bahmad, Casablanca"
+        rating: (4 + Math.random()).toFixed(1),
+        
+      },
+      {
+        id: 2,
+        name: "Gare Casa-Voyageurs",
+        latitude: 33.5901,
+        longitude: -7.6156,
+        type: "station",
+        address: "Boulevard Bahmad, Casablanca",
+        rating: (4 + Math.random()).toFixed(1),
   },
   {
     id: 3,
@@ -21,6 +24,7 @@ export const CASA_LOCATIONS = [
     latitude: 33.5490,
     longitude: -7.6692,
     type: "mall",
+    rating: (4 + Math.random()).toFixed(1),    
     address: "Boulevard de la Corniche, Ain Diab"
   },
   {
@@ -29,6 +33,8 @@ export const CASA_LOCATIONS = [
     latitude: 33.5785,
     longitude: -7.6241,
     type: "business",
+        rating: (4 + Math.random()).toFixed(1),    
+
     address: "Boulevard Zerktouni, Casablanca"
   },
   {
@@ -37,6 +43,8 @@ export const CASA_LOCATIONS = [
     latitude: 33.6081,
     longitude: -7.6308,
     type: "marina",
+        rating: (4 + Math.random()).toFixed(1),    
+
     address: "Boulevard Sidi Abderrahmane"
   },
   {
@@ -45,6 +53,8 @@ export const CASA_LOCATIONS = [
     latitude: 33.6084,
     longitude: -7.6329,
     type: "landmark",
+        rating: (4 + Math.random()).toFixed(1),    
+
     address: "Boulevard Sidi Mohammed Ben Abdallah"
   },
   {
@@ -53,6 +63,8 @@ export const CASA_LOCATIONS = [
     latitude: 33.5842,
     longitude: -7.6037,
     type: "district",
+        rating: (4 + Math.random()).toFixed(1),    
+
     address: "Boulevard Victor Hugo"
   },
   {
@@ -61,6 +73,8 @@ export const CASA_LOCATIONS = [
     latitude: 33.5647,
     longitude: -7.6692,
     type: "beach",
+        rating: (4 + Math.random()).toFixed(1),    
+
     address: "Boulevard de la Corniche"
   },
   {
@@ -69,6 +83,8 @@ export const CASA_LOCATIONS = [
     latitude: 33.5818,
     longitude: -7.6234,
     type: "commercial",
+        rating: (4 + Math.random()).toFixed(1),    
+
     address: "Boulevard Zerktouni, Maarif"
   },
   {
@@ -77,6 +93,8 @@ export const CASA_LOCATIONS = [
     latitude: 33.5896,
     longitude: -7.6180,
     type: "market",
+        rating: (4 + Math.random()).toFixed(1),    
+
     address: "Rue Chaouia, Centre Ville"
   }
 ];
@@ -84,8 +102,8 @@ export const CASA_LOCATIONS = [
 export const CASA_CENTER = {
     latitude: 33.5231,
     longitude: -7.5898,
-    latitudeDelta: 0.08,    
-    longitudeDelta: 0.08,   
+    latitudeDelta: 0.07,    
+    longitudeDelta: 0.07,   
 };
 
 export const USER_POSITION = CASA_CENTER;
@@ -102,7 +120,7 @@ export const getAllLocationNames = () => {
   return CASA_LOCATIONS.map(loc => loc.name);
 };
 
-export const generateRandomTaxis = (count = 8) => {
+export const generateRandomTaxis = (count) => {
     const taxis = [];
     const baseLatitude = CASA_CENTER.latitude;
     const baseLongitude = CASA_CENTER.longitude;

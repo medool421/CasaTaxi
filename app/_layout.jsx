@@ -14,12 +14,19 @@ export default function RootLayout() {
    <Stack.Screen
    name = "booking"
    options={{
-    headerShown: false,
-    presentation: "formSheet",
-    sheetAllowedDetents: [0.3 , 0.8],
-    sheetExpandsWhenScrolledToEdge:false,
-    sheetCornerRadius:20,
-  }}
+     headerShown: false,
+     presentation: "formSheet",
+     sheetAllowedDetents: [0.3 , 0.8],
+     sheetExpandsWhenScrolledToEdge:false,
+     sheetCornerRadius:20,
+    }}
    />
+    <Stack.Screen
+    name = "ride"
+    options={{
+     headerShown: false,
+ 
+   }}
+    />
   </Stack>
   );}

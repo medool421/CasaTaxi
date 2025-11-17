@@ -1,30 +1,39 @@
-import { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { router } from 'expo-router';
 import { CASA_LOCATIONS, getLocationById } from '../utils/casaLocations';
 import { calculateDistanceBetweenLocations } from '../utils/haversine';
-import { calculatePrice, getFormattedPrice, getPriceBreakdown } from '../utils/pricing';
+import { calculatePrice, getPriceBreakdown } from '../utils/pricing';
 import useTaxiStore from '../store/taxiStore';
 
 export default function BookingScreen() {
-  const [pickupId, setPickupId] = useState(CASA_LOCATIONS[0].id);
-  const [destinationId, setDestinationId] = useState(CASA_LOCATIONS[1].id);
-  
-  // Get from Zustand store
+  // Get user position from store
+  const userPosition = useTaxiStore((state) => state.userPosition);
   const isDayMode = useTaxiStore((state) => state.isDayMode);
   const setDayMode = useTaxiStore((state) => state.setDayMode);
   const startRide = useTaxiStore((state) => state.startRide);
 
-  // Get selected locations
-  const pickupLocation = getLocationById(pickupId);
+  // Create user location option
+  const userLocationOption = {
+    id: 'user_position',
+    name: '📍 Ma Position Actuelle',
+    latitude: userPosition?.latitude || 33.5731,
+    longitude: userPosition?.longitude || -7.5898,
+    address: userPosition ? 'Votre position GPS' : 'Position non disponible',
+    type: 'user'
+  };
+
+  // Default to user position if available, otherwise first location
+  const [pickupId, setPickupId] = useState(
+    userPosition ? 'user_position' : CASA_LOCATIONS[0].id
+  );
+  const [destinationId, setDestinationId] = useState(CASA_LOCATIONS[1].id);
+
+  // Get selected locations - handle user_position specially
+  const pickupLocation = pickupId === 'user_position' 
+    ? userLocationOption 
+    : getLocationById(pickupId);
   const destinationLocation = getLocationById(destinationId);
 
   // Calculate trip details
@@ -44,7 +53,6 @@ export default function BookingScreen() {
       return;
     }
 
-    // Save to Zustand store
     startRide({
       pickup: pickupLocation,
       destination: destinationLocation,
@@ -59,14 +67,12 @@ export default function BookingScreen() {
   };
 
   return (
-    <ScrollView nestedScrollEnabled style={styles.container}>
-      {/* Header */}
+    <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>🚖 Réserver un Taxi</Text>
         <Text style={styles.subtitle}>Petit Taxi Rouge - Casablanca</Text>
       </View>
 
-      {/* Day/Night Toggle */}
       <View style={styles.toggleContainer}>
         <TouchableOpacity
           style={[styles.toggleButton, isDayMode && styles.toggleButtonActive]}
@@ -86,7 +92,6 @@ export default function BookingScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Pickup Location */}
       <View style={styles.section}>
         <Text style={styles.label}>📍 Point de Départ</Text>
         <View style={styles.pickerContainer}>
@@ -95,6 +100,7 @@ export default function BookingScreen() {
             onValueChange={(value) => setPickupId(value)}
             style={styles.picker}
           >
+            <Picker.Item label="📍 Ma Position Actuelle" value="user_position" />
             {CASA_LOCATIONS.map((location) => (
               <Picker.Item
                 key={location.id}
@@ -104,10 +110,9 @@ export default function BookingScreen() {
             ))}
           </Picker>
         </View>
-        <Text style={styles.address}>{pickupLocation.address}</Text>
+        <Text style={styles.address}>{pickupLocation?.address || 'Adresse non disponible'}</Text>
       </View>
 
-      {/* Destination Location */}
       <View style={styles.section}>
         <Text style={styles.label}>🎯 Destination</Text>
         <View style={styles.pickerContainer}>
@@ -125,10 +130,9 @@ export default function BookingScreen() {
             ))}
           </Picker>
         </View>
-        <Text style={styles.address}>{destinationLocation.address}</Text>
+        <Text style={styles.address}>{destinationLocation?.address || 'Adresse non disponible'}</Text>
       </View>
 
-      {/* Warning if same location */}
       {isSameLocation && (
         <View style={styles.warningContainer}>
           <Text style={styles.warningText}>
@@ -137,7 +141,6 @@ export default function BookingScreen() {
         </View>
       )}
 
-      {/* Trip Details Card */}
       {!isSameLocation && (
         <View style={styles.detailsCard}>
           <Text style={styles.detailsTitle}>📊 Détails du Trajet</Text>
@@ -175,7 +178,6 @@ export default function BookingScreen() {
         </View>
       )}
 
-      {/* Confirm Button */}
       {!isSameLocation && (
         <TouchableOpacity
           style={styles.confirmButton}

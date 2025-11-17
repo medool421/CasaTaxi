@@ -11,13 +11,15 @@ import useTaxiStore from '../store/taxiStore';
 
 
 export default function MapScreen() {
-  const [taxis, setTaxis] = useState([]);
-  const [userPosition, setUserPosition] = useState(CASA_CENTER);
+  const [taxis, setTaxis] = useState([]); 
   const [mapRegion, setMapRegion] = useState(CASA_CENTER);
+  
+  // Get from store only
+  const userPosition = useTaxiStore((state) => state.userPosition);
+  const setUserPosition = useTaxiStore((state) => state.setUserPosition);
   const isDayMode = useTaxiStore((state) => state.isDayMode);
 
-
-// Request location permission and get user position
+  // Request location permission and get user position
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
@@ -46,6 +48,7 @@ export default function MapScreen() {
         longitude: location.coords.longitude,
       };
 
+      // Save to store only
       setUserPosition(userCoords);
 
       setMapRegion({
@@ -64,61 +67,63 @@ export default function MapScreen() {
 
   const handleBookTaxi = () => {
     console.log('Réserver un taxi clicked!');
-      router.push('/booking');
+    router.push('/booking');
   };
 
   const map = useMemo(()=>
-        <MapView
-        customMapStyle={!isDayMode ?MapDarkStyle:MapLightStyle}
-        style={styles.map}
-        provider={PROVIDER_GOOGLE}
-        initialRegion={mapRegion}
-        showsUserLocation={false}
-        showsMyLocationButton={false}
-      >
-          <Marker
-            coordinate={userPosition}
-            title="Ma position"
-            pinColor="#298cddff"
-          />
-        
+    <MapView
+      customMapStyle={!isDayMode ? MapDarkStyle : MapLightStyle}
+      style={styles.map}
+      provider={PROVIDER_GOOGLE}
+      initialRegion={mapRegion}
+      showsUserLocation={false}
+      showsMyLocationButton={false}
+    >
+      {/* Only show user marker if position exists */}
+      {userPosition && (
+        <Marker
+          coordinate={userPosition}
+          title="Ma position"
+          pinColor="#298cddff"
+        />
+      )}
 
-        {taxis.map((taxi) => (
-          <Marker
-            key={taxi.id}
-            coordinate={{
-              latitude: taxi.latitude,
-              longitude: taxi.longitude,
-            }}
-            title={`Taxi ${taxi.driver.carNumber}`}
-            description={`${taxi.driver.name} - ⭐ ${taxi.driver.rating}`}
-            image={require('../assets/taxi-vect.png')}
-            />
-        ))}
+      {taxis.map((taxi) => (
+        <Marker
+          key={taxi.id}
+          coordinate={{
+            latitude: taxi.latitude,
+            longitude: taxi.longitude,
+          }}
+          title={`Taxi ${taxi.driver.carNumber}`}
+          description={`${taxi.driver.name} - ⭐ ${taxi.driver.rating}`}
+          image={require('../assets/taxi-vect.png')}
+        />
+      ))}
 
-        {CASA_LOCATIONS.map((location) => (
-          <Marker
-          
-            key={location.id}
-            coordinate={{
-              latitude: location.latitude,
-              longitude: location.longitude,
-            }}
-            title={`${location.name}`}
-            description={`${location.address} - ⭐ ${location.rating}`}
-            image={require('../assets/markerdest.webp')}
-             />
-        ))}
-      </MapView>,[taxis, userPosition, isDayMode])
+      {CASA_LOCATIONS.map((location) => (
+        <Marker
+          key={location.id}
+          coordinate={{
+            latitude: location.latitude,
+            longitude: location.longitude,
+          }}
+          title={`${location.name}`}
+          description={`${location.address}`}
+          image={require('../assets/markerdest.webp')}
+        />
+      ))}
+    </MapView>
+  , [taxis, userPosition, isDayMode]);
   
   return (
     <View style={styles.container}>
-    <StatusBar style="auto"  />
-    <View style={styles.textSection}>
-        <Text style={styles.text} >🚖 CASA Taxi 🚖</Text>
-    </View>
+      <StatusBar style="auto" />
+      <View style={styles.textSection}>
+        <Text style={styles.text}>🚖 CASA Taxi 🚖</Text>
+      </View>
  
-    {map}
+      {map}
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity
@@ -147,7 +152,7 @@ const styles = StyleSheet.create({
     zIndex:33,
     justifyContent :'center',
     top: 100,
-    marginHorizontal:136,
+    marginHorizontal:125,
   },
   text: {
     color: '#fff',
